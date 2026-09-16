@@ -1,0 +1,46 @@
+# SEGMENT 3: 3D SPATIAL INTERPOLATION & FAO-56 GINGER AGRONOMY
+GINGER_KC = 1.10
+GINGER_ROOT_DEPTH_M = 0.35
+FIELD_CAPACITY = 0.55
+STRESS_THRESHOLD = 0.34
+
+def interpolate_terrace_moisture(tif_meta, parsed_packets):
+    norm_grid = tif_meta["norm_grid"]
+    h, w = norm_grid.shape
+    
+    sample_coords = []
+    sample_values = []
+    for p in parsed_packets:
+        gx = int(p["coords"].get("grid_x", p["coords"].get("x", w // 2)))
+        gy = int(p["coords"].get("grid_y", p["coords"].get("y", h // 2)))
+        gx = min(max(0, gx), w - 1)
+        gy = min(max(0, gy), h - 1)
+        z_topo = norm_grid[gy, gx]
+        sample_coords.append([gx / w, gy / h, z_topo])
+        sample_values.append(p["moisture_norm"])
+
+    sample_coords = np.array(sample_coords, dtype=np.float32)
+    sample_values = np.array(sample_values, dtype=np.float32)
+
+    stride_y = max(1, h // 60)
+    stride_x = max(1, w // 60)
+    sub_y, sub_x = np.mgrid[0:h:stride_y, 0:w:stride_x]
+    sub_z = norm_grid[sub_y, sub_x]
+    
+    target_points = np.column_stack([(sub_x.ravel() / w), (sub_y.ravel() / h), sub_z.ravel()])
+    rbf = RBFInterpolator(sample_coords, sample_values, kernel='multiquadric', epsilon=0.8)
+    sub_moisture = rbf(target_points).reshape(sub_y.shape)
+    
+    drainage_factor = 1.0 - 0.25 * (sub_z - np.mean(sub_z))
+    sub_moisture = np.clip(sub_moisture * drainage_factor, 0.05, 0.95)
+
+    return {"moisture_grid": sub_moisture, "grid_shape": sub_moisture.shape, "sub_x": sub_x, "sub_y": sub_y}
+
+def calculate_fao56_etc(temp_c, hour_of_day=13.0, rh_percent=70.0):
+    solar_rad_w = 750.0 * np.sin(np.pi * (hour_of_day - 7.0) / 12.0) if 7.0 <= hour_of_day <= 19.0 else 0.0
+    rn_mm_hr = (solar_rad_w * 0.0036) / 2.45
+    sat_vp = 0.6108 * np.exp((17.27 * temp_c) / (temp_c + 237.3))
+    act_vp = sat_vp * (rh_percent / 100.0)
+    vpd = max(0.0, sat_vp - act_vp)
+    et0_mm_hr = max(0.02, 0.408 * rn_mm_hr * 0.65 + 0.05 * vpd)
+    return float(GINGER_KC * et0_mm_hr)
