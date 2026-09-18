@@ -2,7 +2,7 @@
 Terrain-aware smart irrigation system for efficient cultivation in hilly regions — SIH 2026.
 # Smart Irrigation System for Hilly Regions
 
-**SIH 2026 — Problem Statement 25062**
+**SIH 2026 — Problem Statement 26214**
 **Theme:** Agriculture, FoodTech & Rural Development
 **Category:** Hardware
 
