@@ -2,9 +2,9 @@
 Terrain-aware smart irrigation system for efficient cultivation in hilly regions — SIH 2026.
 ## 🎥 Demo Video
 
-Watch the demo video:
+Watch the idea video:
 
-[▶️ Watch the SIH Demo](https://www.youtube.com/watch?v=bzDYK3mOUN0)
+[▶️ Watch here](https://www.youtube.com/watch?v=bzDYK3mOUN0)
 
 # Smart Irrigation System for Hilly Regions
 
