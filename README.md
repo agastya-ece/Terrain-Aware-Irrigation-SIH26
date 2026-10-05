@@ -8,7 +8,7 @@ Watch the idea video:
 
 # Smart Irrigation System for Hilly Regions
 
-**SIH 2026 — Problem Statement 26214**
+**SIH 2026 — Problem Statement 26180**
 **Theme:** Agriculture, FoodTech & Rural Development
 **Category:** Hardware
 
